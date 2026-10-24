@@ -1,2 +1,0 @@
-# EncorePartner
-EncorePartner

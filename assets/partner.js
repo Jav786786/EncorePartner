@@ -111,8 +111,8 @@ var WIDGETS={
       '<p class="hintline" style="text-align:center">'+p.l+' as the example · each race day runs on its own clock</p>';}
    return '<div class="wbox"><p class="lab">Go live</p><div style="margin-top:8px">'+seg('act',ACTS,c.act)+'</div>'+
    tgl('threshold',c.threshold,'Only release a race day that is under '+c.thr+'% sold','Race days your own ticketing is already selling never reach Encore.')+
-   tgl('early',c.early,'First look for Plus and Icon','Higher-tier members see it 12 hours before everyone else.')+
-   '<p class="lab" style="margin-top:12px">Who can book</p><div style="margin-top:8px">'+seg('tiers',[['all','All plans'],['plus','Plus and Icon only']],c.tiers)+'</div></div>'+
+   tgl('early',c.early,'First look for Rock Star and Icon','Higher-tier members see it 12 hours before everyone else.')+
+   '<p class="lab" style="margin-top:12px">Who can book</p><div style="margin-top:8px">'+seg('tiers',[['all','All plans'],['plus','Rock Star and Icon only']],c.tiers)+'</div></div>'+
    '<div class="wbox"><p class="lab">Seats come back to you</p>'+tgl('x',true,'When the allocation is filled','The listing closes itself. Always on.',true)+
    '<div style="padding:10px 0;border-bottom:1px solid var(--line)"><b style="font-size:13px">Close before the race</b><div style="margin-top:8px">'+seg('closeH',[['1','1 hour'],['2','2 hours'],['4','4 hours']],c.closeH)+'</div></div>'+
    tgl('pullback',c.pullback,'Pull back if public sales pass '+c.pull+'%','Unbooked member seats return to your own ticketing automatically.')+'</div>'+tl;},
@@ -172,7 +172,7 @@ var FAQ=[
  [/what is encore/i,function(){return 'Encore is a paid membership for going out. Members pay monthly for credits and spend them on gigs, theatre, sport and exhibitions. For you it\'s a private channel: unsold seats go to members who fit, at a credit price only they see, and you\'re paid when they turn up.';}],
  [/how does encore make money|encore make|your cut|margin/i,function(){return 'Members pre-pay for credits. Encore keeps the difference between what a credit earned us and the settle rate we pay you, and only on seats that are actually used. If your seat stays empty, neither of us is paid.'+(P.ops?' <i>(Ops lens: about '+gbp(C().cr*(BLENDED-C().settle))+' a seat at the current settings.)</i>':'');}],
  [/when.*(get )?paid|how.*paid/i,function(){return 'You\'re paid '+C().payout.toLowerCase()+', by bank transfer, for the seats scanned in the period before. The statement lists every race day, scan and no-show, and you can export it as CSV.';}],
- [/credit (worth|value)|what.*a credit/i,function(){return 'Members pay between £1.09 (Icon) and £2.00 (Access) per credit, depending on plan. For you, a credit is worth exactly the settle rate, '+gbp(C().settle)+', paid when the seat is used.';}]
+ [/credit (worth|value)|what.*a credit/i,function(){return 'Members pay between £1.06 (the biggest credit pack) and £2.00 (Access) per credit, depending on plan or pack. Explorer members are free and buy packs as they go. For you, a credit is worth exactly the settle rate, '+gbp(C().settle)+', paid when the seat is used.';}]
 ];
 function faq(t){for(var i=0;i<FAQ.length;i++){if(FAQ[i][0].test(t)){say(FAQ[i][1]());return true;}}return false;}
 var STEPS={
@@ -256,7 +256,7 @@ var STEPS={
     if((m=t.match(/close[^\d]*(\d)/i))){c.closeH=[1,2,4].reduce(function(a,b){return Math.abs(b-m[1])<Math.abs(a-m[1])?b:a;});refresh();flash('rules');say('Closes '+c.closeH+'h before the race.');return true;}
     if((m=t.match(/(\d+)\s*(h|hour|day|week)/i))){var h=parseInt(m[1],10)*(/day/i.test(m[2])?24:/week/i.test(m[2])?168:1);var o=['72','168','336'];var best=o.reduce(function(a,b){return Math.abs(b-h)<Math.abs(a-h)?b:a;});c.act=best;refresh();flash('rules');
       say('Go-live is '+actLabel(best)+' the race. Each race day follows its own clock, and members can\'t see it before then.');return true;}
-    if(/plus and icon|top tier|icon only/i.test(t)){c.tiers='plus';refresh();say('Only Plus and Icon members can book it.');return true;}
+    if(/(plus|rock ?star) and icon|top tier|icon only/i.test(t)){c.tiers='plus';refresh();say('Only Rock Star and Icon members can book it.');return true;}
     if(/pull ?back/i.test(t)){c.pullback=!/no|off/i.test(t);refresh();say('Pull-back is '+(c.pullback?'on':'off')+'.');return true;}
     if(agree(t)||/defaults/i.test(t)){complete('rules');return true;}
     return false;}},
@@ -366,11 +366,13 @@ function liveText(t){var c=C(),m;
   if(/sell|doing|how did|report|numbers|performance|stats/i.test(t)){var tt=totals();say(tt.seats?'Here\'s where it stands, '+phase(P.clock).long.toLowerCase()+':':'No bookings yet. '+(overall()==='sched'?'It hasn\'t gone live.':'Move the timeline forward, or book it yourself in the member app.'),tt.seats?'pulse':null);return true;}
   if(/another|next show|new event/i.test(t)){say('In the full product I\'d start your next event right here, with everything I\'ve learnt carried over. To run onboarding again, use <b>Reset partner view</b>.');return true;}
   return false;}
-function openMember(fromChat){var w=null;try{w=window.open('member.html','encore-member');}catch(e){}
+/* the member app sits next to this page; a host that serves it elsewhere sets window.ENCORE_MEMBER_URL in the page */
+var MEMBER_URL=window.ENCORE_MEMBER_URL||'member.html';
+function openMember(fromChat){var w=null;try{w=window.open(MEMBER_URL,'encore-member');}catch(e){}
   if(!fromChat)return;
   var pe=partnerEventForMember();
   var tail=pe?'It\'s first in Discover, with '+pe.left+' member seats left.':(P.published?(overall()==='sched'?'It isn\'t visible to members yet: it goes live '+actLabel(C().act)+' the race.':'It isn\'t visible to members right now.'):'Nothing of yours is published yet.');
-  say((w?'The member app is open in another tab. ':'Your browser blocked the new tab. <a href="member.html" target="encore-member">Open the member app</a>. ')+tail);}
+  say((w?'The member app is open in another tab. ':'Your browser blocked the new tab. <a href="'+MEMBER_URL+'" target="encore-member">Open the member app</a>. ')+tail);}
 
 var CROSS=[['pricing',/\d{1,2}\s*(credits|cr)\b/i],['inventory',/\d{2,3}\s*seats/i],['rules',/\d+\s*(h|hours?|days?|weeks?)\b|close.*\d|pull ?back/i],['split',/\d{2}\s*p\b|£\s*0?\.\d|settle/i]];
 function crossStep(t){for(var i=0;i<CROSS.length;i++){var id=CROSS[i][0];if(id!==curId()&&P.done[id]&&CROSS[i][1].test(t)){

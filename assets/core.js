@@ -84,7 +84,7 @@ var SEGMENTS=[
  {k:'new',l:'Never been to an E-Prix',n:12600,d:'Within an hour of ExCeL London, never booked Formula E'}
 ];
 var AREAS=['Newham','Canning Town','Stratford','Greenwich','Hackney','Tower Hamlets','Lewisham','Ilford','Bow','Walthamstow'];
-var BLENDED=1.29; /* Encore revenue per redeemed credit at Plus rate */
+var BLENDED=1.29; /* Encore revenue per redeemed credit at Rock Star rate */
 
 /* Demo timeline. Today is publish day, three weeks before the race weekend. The app only ever shows relative race timing
    ("in 3 weeks", "1 week before"); the anchor dates below exist to run the clock. */
